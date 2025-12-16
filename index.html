@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>NYC Airbnb 互動式儀表板</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>紐約市 Airbnb 房源探索儀表板</h1>
+    </header>
+
+    <div id="dashboard-container">
+        <div id="main-map-view">
+            <h2>🌍 房源地理分佈 (點擊區域篩選)</h2>
+            <div id="map-container">
+                </div>
+        </div>
+
+        <div id="right-panel">
+            <div id="control-panel">
+                <h2>⚙️ 篩選控制項</h2>
+
+                <div class="filter-group">
+                    <label for="price-slider">價格範圍 (USD): $<span id="min-price">0</span> - $<span id="max-price">1000</span></label>
+                    <input type="range" id="price-min" min="0" max="1000" value="0" step="10">
+                    <input type="range" id="price-max" min="0" max="1000" value="1000" step="10">
+                </div>
+
+                <div class="filter-group">
+                    <p>房型 (Room Type):</p>
+                    <label><input type="checkbox" class="room-filter" value="Entire home/apt" checked> 整套房屋</label><br>
+                    <label><input type="checkbox" class="room-filter" value="Private room" checked> 獨立房間</label><br>
+                    <label><input type="checkbox" class="room-filter" value="Shared room" checked> 合住房間</label>
+                </div>
+            </div>
+
+            <div id="statistical-view">
+                <h2>📈 行政區房源數量</h2>
+                <div id="barchart-container">
+                    </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="src/dashboard.js"></script>
+</body>
+</html>
