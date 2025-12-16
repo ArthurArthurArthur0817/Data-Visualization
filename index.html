@@ -1,49 +1,122 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
+
 <head>
     <meta charset="UTF-8">
-    <title>NYC Airbnb 互動式儀表板</title>
+    <title>NYC Airbnb 訂房視覺化</title>
     <script src="https://d3js.org/d3.v7.min.js"></script>
+    <!-- Leaflet -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <!-- D3 Hexbin -->
+    <script src="https://unpkg.com/d3-hexbin@0.2.2/build/d3-hexbin.min.js"></script>
+
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
     <header>
         <h1>紐約市 Airbnb 房源探索儀表板</h1>
     </header>
 
     <div id="dashboard-container">
+        <!-- 左側：地圖 -->
         <div id="main-map-view">
-            <h2>🌍 房源地理分佈 (點擊區域篩選)</h2>
-            <div id="map-container">
-                </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                <h2>🌍 房源地理分佈</h2>
+            </div>
+            <!-- Leaflet Container -->
+            <div id="map-container"></div>
+
         </div>
 
+        <!-- 右側：控制與統計 -->
         <div id="right-panel">
-            <div id="control-panel">
-                <h2>⚙️ 篩選控制項</h2>
 
-                <div class="filter-group">
-                    <label for="price-slider">價格範圍 (USD): $<span id="min-price">0</span> - $<span id="max-price">1000</span></label>
-                    <input type="range" id="price-min" min="0" max="1000" value="0" step="10">
-                    <input type="range" id="price-max" min="0" max="1000" value="1000" step="10">
+            <!-- 控制面板 -->
+            <!-- 控制面板 -->
+            <div id="control-panel">
+                <h2>⚙️ 篩選優化器</h2>
+
+                <!-- 地圖設定 (New Position) -->
+                <div class="filter-group highlight-group"
+                    style="margin-bottom: 10px; border-color: #aed6f1; background-color: #ebf5fb;">
+                    <label style="font-weight: bold; color: #2c3e50; display: block; margin-bottom: 5px;">🗺️
+                        地圖顯示設定</label>
+                    <div>
+                        <span style="font-size: 0.9em;">六邊形大小:</span>
+                        <input type="range" id="hex-radius" min="15" max="100" value="40" step="5"
+                            style="width: 100%; display: block;">
+                    </div>
                 </div>
 
+                <!-- 價格篩選 -->
                 <div class="filter-group">
-                    <p>房型 (Room Type):</p>
-                    <label><input type="checkbox" class="room-filter" value="Entire home/apt" checked> 整套房屋</label><br>
-                    <label><input type="checkbox" class="room-filter" value="Private room" checked> 獨立房間</label><br>
+                    <label>價格預算 (USD): $<span id="min-price">0</span> - $<span id="max-price">1000</span></label>
+                    <div class="slider-container">
+                        <input type="range" id="price-min" min="0" max="1000" value="0" step="10">
+                        <input type="range" id="price-max" min="0" max="1000" value="1000" step="10">
+                    </div>
+                </div>
+
+                <!-- 交通篩選 (New) -->
+                <!-- 交通篩選 (New) -->
+                <div class="filter-group highlight-group">
+                    <label style="display: flex; align-items: center; justify-content: space-between;">
+                        <span>🚆 距地鐵站距離:</span>
+                        <span>
+                            <input type="checkbox" id="distance-enable" checked> 啟用
+                        </span>
+                    </label>
+                    <div id="distance-control-container">
+                        <span id="distance-val">3000</span>m 內
+                        <input type="range" id="distance-slider" min="100" max="3000" step="100" value="3000"
+                            style="width: 100%;">
+                    </div>
+                </div>
+
+                <!-- 區域細部篩選 (Refactored) -->
+                <div class="filter-group" style="flex: 1; display: flex; flex-direction: column; min-height: 250px;">
+                    <label>🏘️ 鎖定街區 Filter by Area:</label>
+                    <div id="neighborhood-list-container" class="neighborhood-list">
+                        <!-- Dynamically populated checkboxes -->
+                    </div>
+                </div>
+
+                <!-- 房型篩選 -->
+                <div class="filter-group">
+                    <p>🏠 房型:</p>
+                    <label><input type="checkbox" class="room-filter" value="Entire home/apt" checked> 整套房屋</label>
+                    <label><input type="checkbox" class="room-filter" value="Private room" checked> 獨立房間</label>
                     <label><input type="checkbox" class="room-filter" value="Shared room" checked> 合住房間</label>
                 </div>
             </div>
 
-            <div id="statistical-view">
-                <h2>📈 行政區房源數量</h2>
-                <div id="barchart-container">
+            <!-- 統計圖表區 -->
+            <div id="charts-view">
+                <div class="chart-box">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <h3>📈 房源數量統計</h3>
+                        <select id="chart-grouping-select" style="padding: 2px;">
+                            <option value="borough">依行政區/Borough</option>
+                            <option value="neighborhood">依街區/Neighborhood</option>
+                        </select>
                     </div>
+                    <div id="barchart-container"></div>
+                </div>
+                <div class="chart-box">
+                    <h3>💎 CP值分析 (價格 vs 評價數)</h3>
+                    <div id="scatterplot-container"></div>
+                </div>
             </div>
         </div>
     </div>
 
-    <script src="src/dashboard.js"></script>
+    <!-- 模組化入口 -->
+    <!-- 模組化入口 -->
+    <script type="module" src="src/main.js?v=fix_rMax_syntax"></script>
 </body>
+
 </html>
