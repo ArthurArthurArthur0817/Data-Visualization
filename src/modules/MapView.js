@@ -317,13 +317,20 @@ export class MapView {
     }
 
     drawPoints(data, projectPoint) {
+        const zoom = this.map.getZoom();
+        // Dynamic radius: Larger when zoomed in deeper
+        // Zoom 16 -> 6px, Zoom 17 -> 8px, Zoom 18+ -> 10px
+        let radius = 5;
+        if (zoom >= 18) radius = 8;
+        else if (zoom >= 17) radius = 6;
+
         this.g.selectAll(".listing-point")
             .data(data)
             .enter().append("circle")
             .attr("class", "listing-point")
             .attr("cx", d => projectPoint(d.latitude, d.longitude)[0])
             .attr("cy", d => projectPoint(d.latitude, d.longitude)[1])
-            .attr("r", 4)
+            .attr("r", radius)
             .attr("fill", d => this.priceColorScale(d.price))
             .attr("opacity", 0.9)
             .attr("stroke", "#fff")
