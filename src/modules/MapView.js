@@ -97,7 +97,7 @@ export class MapView {
         const baseMaps = {
             "簡潔明亮 Light": cartoLight,
             "深色模式 Dark": cartoDark,
-            "經典街道 Classic": esriStreet
+            "經典街道 Informative": esriStreet
         };
 
         const overlayMaps = {
@@ -155,6 +155,37 @@ export class MapView {
 
     update(data, selectedBorough) {
         this.filteredData = data;
+
+        // Dynamic Color Scale Update
+        if (data && data.length > 0) {
+            // Filter out zero or negative prices
+            const validPrices = data.map(d => d.price).filter(p => p > 0);
+
+            let minPrice = 0;
+            let maxPrice = 500;
+
+            if (validPrices.length > 0) {
+                // Sort for quantile
+                validPrices.sort((a, b) => a - b);
+
+                // Use 10th percentile as min
+                const p10 = d3.quantile(validPrices, 0.1);
+                minPrice = p10 !== undefined ? p10 : d3.min(validPrices);
+
+                // Use 90th percentile as max
+                const p90 = d3.quantile(validPrices, 0.9);
+                maxPrice = p90 !== undefined ? p90 : d3.max(validPrices);
+            }
+
+            // Should we force a minimum spread to avoid single-color if min==max?
+            const upper = (maxPrice <= minPrice) ? minPrice + 100 : maxPrice;
+
+            console.log(`[Map Color] Domain updated (10th-90th Percentile): ${minPrice.toFixed(1)} - ${upper.toFixed(1)} (based on ${validPrices.length} valid items)`);
+
+            this.priceColorScale.domain([minPrice, upper]);
+            this.hexColorScale.domain([minPrice, upper]);
+        }
+
         this.updateView();
     }
 
