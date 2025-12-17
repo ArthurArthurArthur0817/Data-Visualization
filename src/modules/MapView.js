@@ -342,6 +342,7 @@ export class MapView {
                 this.tooltip.html(`
                     <strong>${d.name}</strong><br>
                     區域: ${d.neighbourhood}<br>
+                    房型: ${d.room_type}<br>
                     價格: $${d.price}<br>
                     評價數: ${d.number_of_reviews}<br>
                     距地鐵: ${d.dist_to_subway}m
