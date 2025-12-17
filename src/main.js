@@ -9,7 +9,7 @@ const state = {
     roomTypes: ['Entire home/apt', 'Private room', 'Shared room'],
     selectedNeighborhoods: [],
     maxDistance: 3000,
-    distanceEnabled: true,
+    distanceEnabled: false,
     chartGrouping: 'borough' // 'borough' or 'neighborhood'
 };
 
@@ -29,6 +29,11 @@ const showSubwayCheck = document.getElementById("show-subway-check");
 const dataManager = new DataManager();
 const mapView = new MapView("#map-container");
 const charts = new Charts("#barchart-container", "#scatterplot-container");
+
+// Sync Checkbox with Initial State immediately (to override browser caching)
+if (distanceEnable) {
+    distanceEnable.checked = state.distanceEnabled;
+}
 
 async function init() {
     try {
@@ -53,6 +58,13 @@ async function init() {
         distanceInput.value = maxDist;
         state.maxDistance = maxDist;
         distanceSpan.innerText = maxDist;
+
+        // Init distance toggle UI state
+        const distanceContainer = document.getElementById('distance-control-container');
+        if (distanceContainer && !state.distanceEnabled) {
+            distanceContainer.style.opacity = "0.5";
+            distanceContainer.style.pointerEvents = "none";
+        }
 
     } catch (err) {
         console.error("Init failed:", err);
