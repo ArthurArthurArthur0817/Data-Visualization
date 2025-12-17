@@ -1,0 +1,84 @@
+HexBnB - NYC Airbnb Data Visualization Project
+Implementation Report
+
+1. Project Overview
+-------------------
+HexBnB is an interactive web-based visualization dashboard designed to explore Airbnb listings across New York City, Jersey City, and Newark. 
+The project leverages a hexbin-based map visualization to handle high-density geographic data, providing users with insights into pricing, distribution, and accessibility (proximity to subway stations).
+
+2. Technology Stack
+-------------------
+Frontend:
+-   HTML5 & CSS3 (Flexbox/Grid layouts).
+-   JavaScript (ES6 Modules).
+-   D3.js (v7): Used for data manipulation, scales, and chart generation.
+-   Leaflet.js (v1.9.4): Used for the base map and coordinate handling.
+-   d3-hexbin: A D3 plugin for hexagonal binning of geographic points.
+
+Backend / Data Processing:
+-   Python (Pandas): For preprocessing raw CSV data into optimization-ready JSON.
+-   GeoJSON: For vector map data (Subway stations, Borough boundaries).
+
+3. Data Pipeline Implementation
+-------------------------------
+The data processing logic is encapsulated in `tools/update_data.py`.
+
+a. Data Sources:
+   - Airbnb Listings: Raw CSV/GZ files for NYC, Jersey City, and Newark.
+   - NYC Subway Stations: GeoJSON file containing station coordinates and lines.
+
+b. Processing Steps:
+   1. Data Loading: Reads multiple CSV files and merges them into a single DataFrame.
+   2. Cleaning: 
+      - Parses currency fields (removes '$', ',').
+      - Converts numeric columns (latitude, longitude, reviews).
+      - Filters out invalid rows (missing coordinates) and extreme prices ($10-$1000 range).
+   3. Feature Engineering:
+      - `neighbourhood_group`: Normalizes borough names (e.g., mapping Jersey City areas).
+      - `dist_to_subway`: Calculates the Haversine distance from each listing to the nearest subway station. This computationally intensive step is pre-calculated to ensure smooth frontend performance.
+   4. Output: Saves the processed data as `processed_data.json` (JSON array of objects), reducing the payload for the web client.
+
+4. Frontend Architecture
+------------------------
+The application uses a modular architecture located in the `src/` directory.
+
+a. Entry Point (`src/main.js`):
+   - Initializes the application components (DataManager, MapView, Charts).
+   - Manages the Global State (price filters, distance thresholds, selected neighborhoods).
+   - Sets up event listeners for UI controls (sliders, checkboxes) and orchestrates updates across all views.
+
+b. Data Management (`src/modules/DataManager.js`):
+   - Asynchronously fetches `processed_data.json`.
+   - Provides efficient filtering methods based on the global state object.
+   - Generates a hierarchical structure of Boroughs -> Neighborhoods for the UI selection list.
+
+c. Map Visualization (`src/modules/MapView.js`):
+   - Core Logic: Integrates D3 visualization layers on top of a Leaflet base map using `L.svg()`.
+   - Base Maps: Offers "Light", "Dark", and "Street" modes via Leaflet Layer Control.
+   - Adaptive rendering based on Zoom Level:
+     - Low Zoom (< 16): Renders a **Hexbin Layer**.
+       - Hexagons aggregate proximal listings.
+       - Radius represents Listing Count (Density).
+       - Color represents Average Price (Heatmap).
+     - High Zoom (>= 16): Renders **Individual Points**.
+       - Shows exact location of each listing.
+       - Color coded by individual price.
+   - Subway Layer:
+     - Renders subway stations as interactive markers.
+     - Implements "Smart Zoom" filtering: hides minor stations at high altitudes, showing only major hubs until zoomed in (to reduce clutter).
+
+d. Charts & Analytics (`src/modules/Charts.js`):
+   - Bar Chart: Visualizes the distribution of listings by Borough or Neighborhood. Updates dynamically based on the current map filter.
+   - Scatter Plot: specific analytics (e.g., Price vs. Number of Reviews) to identify "Value" properties (High Rating/Volume, Low Price).
+
+5. User Interface Features
+--------------------------
+-   **Dynamic Filtering**: 
+    -   Price Range Slider ($0 - $1000).
+    -   Distance to Subway Slider (e.g., filter listings within 500m of a station).
+    -   Room Type Toggles (Entire home, Private room, Shared room).
+    -   Hierarchical Neighborhood Selector (allows fine-grained filtering).
+-   **Interactivity**:
+    -   Hover effects on map elements (tooltips with detailed info).
+    -   Clicking map clusters zooms in.
+    -   Synchronized updates: Filtering the map automatically updates the bar charts and scatter plots.
