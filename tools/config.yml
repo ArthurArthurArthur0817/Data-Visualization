@@ -1,0 +1,7 @@
+tunnel: data-viz
+credentials-file: C:\Users\klps0\.cloudflared\48d055e1-d852-43f3-858e-3b52c1c13aa8.json
+
+ingress:
+  - hostname: viz-demo.cyfox.click
+    service: http://localhost:7234
+  - service: http_status:404

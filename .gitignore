@@ -1,0 +1,5 @@
+# Tools
+tools/cloudflared.exe
+
+# Logs
+tunnel.log
