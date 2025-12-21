@@ -5,6 +5,8 @@
 ### 1. 安裝 Cloudflare Tunnel 工具
 請根據您的作業系統下載 `cloudflared`，並將其放入專案的 `tools/` 資料夾中 (若無此資料夾請自行建立)。
 
+📄 **專案報告**: [點此查看完整報告 (Project Report)](doc/final/REPORT.md)
+
 - **Windows**: [下載連結 (64-bit)](https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-windows-amd64.exe)
     - 下載後請重新命名為 `cloudflared.exe` 並放入 `tools/` 資料夾。
 - **macOS**:

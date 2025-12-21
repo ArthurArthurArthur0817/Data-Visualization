@@ -201,7 +201,36 @@ export class Charts {
             .style("font-weight", "bold")
             .text("平均評分 (Avg Rating)");
 
-        // Bubbles
+        // Brush Interaction (Append BEFORE items to allow hover on items)
+        const brush = d3.brush()
+            .extent([[this.margin.left, this.margin.top], [width - this.margin.right, height - this.margin.bottom]])
+            .on("end", (event) => {
+                if (!event.selection) return;
+                if (!this.onScatterSelection) return;
+
+                const [[x0, y0], [x1, y1]] = event.selection;
+                // Find neighborhoods inside selection
+                const selected = plotData.filter(d => {
+                    const x = xScale(d.avgPrice);
+                    const y = yScale(d.avgRating);
+                    return x >= x0 && x <= x1 && y >= y0 && y <= y1;
+                });
+
+                this.onScatterSelection(selected.map(d => d.name));
+            });
+
+        // Append Brush Group First (so it is behind bubbles)
+        this.scatterSvg.append("g")
+            .attr("class", "brush")
+            .call(brush);
+
+        // Double click to clear/reset
+        this.scatterSvg.on("dblclick", () => {
+            if (this.onScatterSelection) this.onScatterSelection(null); // Reset
+            this.scatterSvg.select(".brush").call(brush.move, null);
+        });
+
+        // Bubbles (Append AFTER brush so they capture mouse events for tooltip)
         const bubbles = this.scatterSvg.append("g")
             .selectAll("circle")
             .data(plotData)
@@ -215,10 +244,7 @@ export class Charts {
             .attr("stroke-width", 1.5)
             .style("cursor", "pointer");
 
-
-
-        // Rich Info Card Interaction
-        // Instead of a simple tooltip, let's create a "Magnified Detail Window" inside the chart area
+        // Rich Info Card Interaction ... (Logic remains the same)
         let infoCard = d3.select(this.scatterContainerId).select(".info-card");
         if (infoCard.empty()) {
             infoCard = d3.select(this.scatterContainerId)
@@ -262,44 +288,8 @@ export class Charts {
                     .attr("stroke-width", 1.5)
                     .attr("opacity", 0.7);
 
-                // Keep card visible? No, user asked for hover zoom window generally implies temporary.
-                // Or maybe they want to click to lock? 
-                // Let's stick to hover for now, but make it persistent if brushed? No.
                 infoCard.style("opacity", 0);
             });
-
-
-
-        // Brush Interaction
-        const brush = d3.brush()
-            .extent([[this.margin.left, this.margin.top], [width - this.margin.right, height - this.margin.bottom]])
-            .on("end", (event) => {
-                if (!event.selection) return;
-                if (!this.onScatterSelection) return;
-
-                const [[x0, y0], [x1, y1]] = event.selection;
-                // Find neighborhoods inside selection
-                const selected = plotData.filter(d => {
-                    const x = xScale(d.avgPrice);
-                    const y = yScale(d.avgRating);
-                    return x >= x0 && x <= x1 && y >= y0 && y <= y1;
-                });
-
-                this.onScatterSelection(selected.map(d => d.name));
-
-                // Clear brush after selection? Or keep it?
-                // Keeping it allows refinement. User can click out to clear.
-            });
-
-        this.scatterSvg.append("g")
-            .attr("class", "brush")
-            .call(brush);
-
-        // Double click to clear/reset
-        this.scatterSvg.on("dblclick", () => {
-            if (this.onScatterSelection) this.onScatterSelection(null); // Reset
-            this.scatterSvg.select(".brush").call(brush.move, null);
-        });
     }
 
     update(data, selectedBorough) {
