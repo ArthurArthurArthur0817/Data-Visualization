@@ -40,7 +40,7 @@ async function init() {
         const { data, subwayGeoJson } = await dataManager.loadData();
 
         // Init Views
-        mapView.init(null, data, subwayGeoJson);
+        await mapView.init(null, data, subwayGeoJson);
         charts.init();
 
         // Populate Neighborhood Checkboxes (Grouped)

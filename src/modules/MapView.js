@@ -24,7 +24,7 @@ export class MapView {
         this.subwayLayerGroup = L.layerGroup();
     }
 
-    init(geoJson, data, subwayGeoJson) {
+    async init(geoJson, data, subwayGeoJson) {
         // Note: geoJson (boroughs) is not used for basemap anymore, but could be an overlay
         this.data = data;
 
@@ -33,15 +33,24 @@ export class MapView {
         this.map = L.map(this.containerId.replace("#", "")).setView([40.73, -73.935], 11);
 
         // 2. Base Layers
-        // 2. Base Layers
-        const cartoLight = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        let cartoKeyParam = '';
+        try {
+            const config = await import('../../config.js');
+            if (config && config.CARTO_API_KEY && config.CARTO_API_KEY !== 'YOUR_CARTO_API_KEY_HERE') {
+                cartoKeyParam = `?key=${config.CARTO_API_KEY}`;
+            }
+        } catch (e) {
+            // config.js doesn't exist, proceed with default
+        }
+
+        const cartoLight = L.tileLayer(`https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png${cartoKeyParam}`, {
             attribution: '&copy; <a href="https://carto.com/attributions">CARTO</a>',
             subdomains: 'abcd',
             maxZoom: 19,
             className: 'light-tiles' // Added for brightness control
         });
 
-        const cartoDark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        const cartoDark = L.tileLayer(`https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png${cartoKeyParam}`, {
             attribution: '&copy; <a href="https://carto.com/attributions">CARTO</a>',
             subdomains: 'abcd',
             maxZoom: 19,

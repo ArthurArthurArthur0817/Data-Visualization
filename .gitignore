@@ -3,3 +3,7 @@ tools/cloudflared.exe
 
 # Logs
 tunnel.log
+
+# Config / Secrets
+.env
+config.js
